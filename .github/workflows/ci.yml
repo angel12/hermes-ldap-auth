@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Hermes revision the plugin is tested against. Bump deliberately.
+  HERMES_REPO: NousResearch/hermes-agent
+  HERMES_SHA: a13d3a45d20dfcafff540b55397655004f7041c4
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    defaults:
+      run:
+        working-directory: plugin
+    steps:
+      # Side by side, so `plugins validate .` scans only this plugin.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          path: plugin
+
+      - name: Check out Hermes
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ env.HERMES_REPO }}
+          ref: ${{ env.HERMES_SHA }}
+          path: hermes
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Hermes refuses wheel builds; its own PM builds the test environment.
+      - name: Build Hermes test environment
+        working-directory: hermes
+        run: python -m pm.build_env --source . --out "$RUNNER_TEMP/hermes-venv" --group dev --group test
+
+      # The plugin's declared deps go in their own directory: the Hermes env
+      # is PM-owned, so raw pip never writes into it.
+      - name: Install plugin dependencies
+        run: |
+          python - <<'EOF' > "$RUNNER_TEMP/plugin-reqs.txt"
+          import tomllib
+          print("\n".join(tomllib.load(open("pyproject.toml", "rb"))["project"]["dependencies"]))
+          EOF
+          python -m pip install --target "$RUNNER_TEMP/plugin-deps" -r "$RUNNER_TEMP/plugin-reqs.txt"
+
+      - name: hermes plugins validate
+        run: |
+          export HERMES_HOME="$(mktemp -d)"
+          export PYTHONPATH="$GITHUB_WORKSPACE/hermes:$RUNNER_TEMP/plugin-deps"
+          "$RUNNER_TEMP/hermes-venv/bin/python" -m hermes_cli.main plugins validate .
+
+      - name: Tests
+        run: |
+          export PYTHONPATH="$GITHUB_WORKSPACE/hermes:$RUNNER_TEMP/plugin-deps"
+          "$RUNNER_TEMP/hermes-venv/bin/python" -m pytest tests

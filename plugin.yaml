@@ -1,0 +1,13 @@
+name: dashboard-auth-ldap
+version: 1.0.0
+description: "Dashboard auth provider — LDAP / Active Directory password login via LDAP bind. Registers once dashboard.ldap_auth.server_url plus a bind mode (user_dn_template for direct bind, or user_search_base for search-then-bind) is configured in config.yaml (or the HERMES_DASHBOARD_LDAP_* env overrides). Requires ldaps:// or start_tls unless allow_insecure is set. Sessions are stateless HMAC-signed tokens; the directory is contacted only at login and (search mode) refresh."
+author: angel12
+license: MIT
+homepage: https://github.com/angel12/hermes-ldap-auth
+kind: standalone
+requires_hermes: ">=0.21"
+tags:
+  - dashboard
+  - auth
+  - ldap
+  - active-directory
