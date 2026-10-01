@@ -12,7 +12,7 @@ Once you sign in, Hermes's shared dashboard-auth framework takes over: the login
 hermes plugins install https://github.com/angel12/hermes-ldap-auth --enable
 ```
 
-Hermes doesn't load user plugins until they're enabled. Without `--enable`, you get an interactive prompt; otherwise run `hermes plugins enable dashboard-auth-ldap` later. Enabling the plugin installs its one dependency, [`ldap3`](https://pypi.org/project/ldap3/) (pure Python, so it works on native Windows and Termux), into the Hermes environment.
+Hermes doesn't load user plugins until they're enabled. Enabling asks you to approve the plugin's one dependency, [`ldap3`](https://pypi.org/project/ldap3/) (pure Python, so it works on native Windows and Termux), then installs it into the Hermes environment. That approval needs an interactive terminal: a non-interactive install (CI, scripts) leaves the plugin installed but disabled, even with `--enable`. Run `hermes plugins enable dashboard-auth-ldap` from a terminal to finish.
 
 The plugin does nothing until `dashboard.ldap_auth` is configured. Restart the dashboard after changing the config.
 
