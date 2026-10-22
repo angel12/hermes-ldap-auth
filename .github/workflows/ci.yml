@@ -11,7 +11,7 @@ permissions:
 env:
   # Hermes revision the plugin is tested against. Bump deliberately.
   HERMES_REPO: NousResearch/hermes-agent
-  HERMES_SHA: a13d3a45d20dfcafff540b55397655004f7041c4
+  HERMES_SHA: 4d04303818b61bf3aa09278af48356315515965b  # v0.22.4
 
 jobs:
   test:
